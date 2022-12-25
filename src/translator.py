@@ -5,7 +5,7 @@ import re
 import sys
 from collections import namedtuple
 
-from isa import ArgumentTypes, ISACommands, write_code, Instruction, WORD_WIDTH
+from .isa import ArgumentTypes, ISACommands, write_code, Instruction, WORD_WIDTH
 
 
 # Line and offset starts with 0

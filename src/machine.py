@@ -1,13 +1,12 @@
 #!/usr/bin/python3
 
-from isa import Opcode, read_code, Instruction, WORD_WIDTH, read_input, write_output
+from .isa import Opcode, read_code, Instruction, WORD_WIDTH, read_input, write_output
 
 import logging
 import sys
 from enum import Enum
 
 from typing import TypeVar, Generic
-
 T = TypeVar('T')
 
 WORD_MAX_VALUE = 2 ** (WORD_WIDTH - 1) - 1
