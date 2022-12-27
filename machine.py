@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from .isa import Opcode, read_code, Instruction, WORD_WIDTH, read_input, write_output
+from isa import Opcode, read_code, Instruction, WORD_WIDTH, read_input, write_output
 
 import logging
 import sys
@@ -13,6 +13,7 @@ WORD_MAX_VALUE = 2 ** (WORD_WIDTH - 1) - 1
 WORD_MIN_VALUE = 2 ** (WORD_WIDTH - 1) * (-1)
 TICK_LIMIT = 5000
 ITOC_CONST = ord('0')
+INT_UNDEF = -1
 
 
 # Utility
@@ -133,8 +134,8 @@ class DataPath:
 
         self.alu: Alu = Alu()
         # registers
-        self.ac: Wrapper[int] = Wrapper[int](-1)  # accumulator
-        self.dr: Wrapper[int] = Wrapper[int](-1)  # data register
+        self.ac: Wrapper[int] = Wrapper[int](INT_UNDEF)  # accumulator
+        self.dr: Wrapper[int] = Wrapper[int](INT_UNDEF)  # data register
 
     def _get_mem_cell(self, addr: int):
         lb = 0
@@ -168,7 +169,7 @@ class DataPath:
     def alu_perform(self, op: Alu.Operations, left: int, right: int) -> int:
         return self.alu.perform(op, left, right)
 
-    def port_perform(self, port: int, io_wr: bool):
+    def port_perform(self, port: int | str, io_wr: bool):
         # convert port from int to str
         port = str(port)
         if io_wr:
@@ -204,7 +205,7 @@ class ControlUnit:
         self.data_path: DataPath = data_path
         # registers
         self.program_counter: Wrapper[int] = Wrapper[int](start_pos)
-        self.tick_counter: Wrapper[int] = Wrapper[int](-1)  # for instruction
+        self.tick_counter: Wrapper[int] = Wrapper[int](INT_UNDEF)  # for instruction
         self.instr_reg: Instruction = Instruction()  # struct format
 
         self.stage: ControlUnit.Stage = ControlUnit.Stage.FETCH
@@ -273,7 +274,7 @@ class ControlUnit:
         # Accumulator modification commands
         if op in [Opcode.INC, Opcode.DEC, Opcode.ITOC, Opcode.CTOI]:
             ac_old: int = self.data_path.ac.get()
-            ac_new: int = -1
+            ac_new: int = INT_UNDEF
             match op:
                 case Opcode.INC:
                     ac_new = self.data_path.alu_perform(Alu.Operations.ADD, ac_old, 1)
@@ -291,7 +292,7 @@ class ControlUnit:
                   Opcode.DIV_IMM, Opcode.MOD_M, Opcode.MOD_IMM, Opcode.MUL_M, Opcode.MUL_IMM,
                   Opcode.CMP_IMM, Opcode.CMP_M]:
             ac_old: int = self.data_path.ac.get()
-            ac_new: int = -1
+            ac_new: int = INT_UNDEF
             dr_val = self.data_path.dr.get()
 
             if op in [Opcode.CMP_M, Opcode.CMP_IMM]:
