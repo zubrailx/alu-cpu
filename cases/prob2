@@ -2,50 +2,34 @@
   "instructions": [
     {
       "address": 0,
-      "args": [],
-      "opcode": null,
       "value": 2
     },
     {
       "address": 32,
-      "args": [],
-      "opcode": null,
       "value": 0
     },
     {
       "address": 64,
-      "args": [],
-      "opcode": null,
       "value": 0
     },
     {
       "address": 96,
-      "args": [],
-      "opcode": null,
       "value": 0
     },
     {
       "address": 128,
-      "args": [],
-      "opcode": null,
       "value": 0
     },
     {
       "address": 160,
-      "args": [],
-      "opcode": null,
       "value": 0
     },
     {
       "address": 192,
-      "args": [],
-      "opcode": null,
       "value": 1
     },
     {
       "address": 224,
-      "args": [],
-      "opcode": null,
       "value": 2
     },
     {
@@ -53,352 +37,307 @@
       "args": [
         0
       ],
-      "opcode": "ld_imm",
-      "value": null
+      "opcode": "ld_imm"
     },
     {
       "address": 288,
       "args": [
         0
       ],
-      "opcode": "in_imm",
-      "value": null
+      "opcode": "in_imm"
     },
     {
       "address": 320,
       "args": [
         10
       ],
-      "opcode": "cmp_imm",
-      "value": null
+      "opcode": "cmp_imm"
     },
     {
       "address": 352,
       "args": [
         576
       ],
-      "opcode": "je",
-      "value": null
+      "opcode": "je"
     },
     {
       "address": 384,
       "args": [
         128
       ],
-      "opcode": "st_imm",
-      "value": null
+      "opcode": "st_imm"
     },
     {
       "address": 416,
       "args": [
         96
       ],
-      "opcode": "ld_m",
-      "value": null
+      "opcode": "ld_m"
     },
     {
       "address": 448,
       "args": [
         10
       ],
-      "opcode": "mul_imm",
-      "value": null
+      "opcode": "mul_imm"
     },
     {
       "address": 480,
       "args": [
         128
       ],
-      "opcode": "add_m",
-      "value": null
+      "opcode": "add_m"
     },
     {
       "address": 512,
       "args": [
         96
       ],
-      "opcode": "st_imm",
-      "value": null
+      "opcode": "st_imm"
     },
     {
       "address": 544,
       "args": [
         256
       ],
-      "opcode": "jmp",
-      "value": null
+      "opcode": "jmp"
     },
     {
       "address": 576,
       "args": [
         96
       ],
-      "opcode": "ld_m",
-      "value": null
+      "opcode": "ld_m"
     },
     {
       "address": 608,
       "args": [
         0
       ],
-      "opcode": "cmp_imm",
-      "value": null
+      "opcode": "cmp_imm"
     },
     {
       "address": 640,
       "args": [
         1376
       ],
-      "opcode": "js",
-      "value": null
+      "opcode": "js"
     },
     {
       "address": 672,
       "args": [
         1
       ],
-      "opcode": "cmp_imm",
-      "value": null
+      "opcode": "cmp_imm"
     },
     {
       "address": 704,
       "args": [
         1376
       ],
-      "opcode": "je",
-      "value": null
+      "opcode": "je"
     },
     {
       "address": 736,
       "args": [],
-      "opcode": "inc",
-      "value": null
+      "opcode": "inc"
     },
     {
       "address": 768,
       "args": [
         32
       ],
-      "opcode": "st_imm",
-      "value": null
+      "opcode": "st_imm"
     },
     {
       "address": 800,
       "args": [
         0
       ],
-      "opcode": "ld_m",
-      "value": null
+      "opcode": "ld_m"
     },
     {
       "address": 832,
       "args": [
         32
       ],
-      "opcode": "cmp_m",
-      "value": null
+      "opcode": "cmp_m"
     },
     {
       "address": 864,
       "args": [
         1376
       ],
-      "opcode": "je",
-      "value": null
+      "opcode": "je"
     },
     {
       "address": 896,
       "args": [
         2
       ],
-      "opcode": "mod_imm",
-      "value": null
+      "opcode": "mod_imm"
     },
     {
       "address": 928,
       "args": [
         1056
       ],
-      "opcode": "jne",
-      "value": null
+      "opcode": "jne"
     },
     {
       "address": 960,
       "args": [
         64
       ],
-      "opcode": "ld_m",
-      "value": null
+      "opcode": "ld_m"
     },
     {
       "address": 992,
       "args": [
         192
       ],
-      "opcode": "add_m",
-      "value": null
+      "opcode": "add_m"
     },
     {
       "address": 1024,
       "args": [
         64
       ],
-      "opcode": "st_imm",
-      "value": null
+      "opcode": "st_imm"
     },
     {
       "address": 1056,
       "args": [
         192
       ],
-      "opcode": "ld_m",
-      "value": null
+      "opcode": "ld_m"
     },
     {
       "address": 1088,
       "args": [
         224
       ],
-      "opcode": "add_m",
-      "value": null
+      "opcode": "add_m"
     },
     {
       "address": 1120,
       "args": [
         160
       ],
-      "opcode": "st_imm",
-      "value": null
+      "opcode": "st_imm"
     },
     {
       "address": 1152,
       "args": [
         192
       ],
-      "opcode": "ld_m",
-      "value": null
+      "opcode": "ld_m"
     },
     {
       "address": 1184,
       "args": [
         224
       ],
-      "opcode": "st_imm",
-      "value": null
+      "opcode": "st_imm"
     },
     {
       "address": 1216,
       "args": [
         160
       ],
-      "opcode": "ld_m",
-      "value": null
+      "opcode": "ld_m"
     },
     {
       "address": 1248,
       "args": [
         192
       ],
-      "opcode": "st_imm",
-      "value": null
+      "opcode": "st_imm"
     },
     {
       "address": 1280,
       "args": [
         0
       ],
-      "opcode": "ld_m",
-      "value": null
+      "opcode": "ld_m"
     },
     {
       "address": 1312,
       "args": [],
-      "opcode": "inc",
-      "value": null
+      "opcode": "inc"
     },
     {
       "address": 1344,
       "args": [
         832
       ],
-      "opcode": "jmp",
-      "value": null
+      "opcode": "jmp"
     },
     {
       "address": 1376,
       "args": [
         64
       ],
-      "opcode": "ld_m",
-      "value": null
+      "opcode": "ld_m"
     },
     {
       "address": 1408,
       "args": [
         10
       ],
-      "opcode": "mod_imm",
-      "value": null
+      "opcode": "mod_imm"
     },
     {
       "address": 1440,
       "args": [],
-      "opcode": "itoc",
-      "value": null
+      "opcode": "itoc"
     },
     {
       "address": 1472,
       "args": [
         1
       ],
-      "opcode": "out_imm",
-      "value": null
+      "opcode": "out_imm"
     },
     {
       "address": 1504,
       "args": [
         64
       ],
-      "opcode": "ld_m",
-      "value": null
+      "opcode": "ld_m"
     },
     {
       "address": 1536,
       "args": [
         10
       ],
-      "opcode": "div_imm",
-      "value": null
+      "opcode": "div_imm"
     },
     {
       "address": 1568,
       "args": [
         1664
       ],
-      "opcode": "js",
-      "value": null
+      "opcode": "js"
     },
     {
       "address": 1600,
       "args": [
         64
       ],
-      "opcode": "st_imm",
-      "value": null
+      "opcode": "st_imm"
     },
     {
       "address": 1632,
       "args": [
         1408
       ],
-      "opcode": "jmp",
-      "value": null
+      "opcode": "jmp"
     },
     {
       "address": 1664,
       "args": [],
-      "opcode": "halt",
-      "value": null
+      "opcode": "halt"
     }
   ],
   "start_pos": 256

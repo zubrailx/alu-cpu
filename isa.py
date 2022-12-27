@@ -203,11 +203,17 @@ class Instruction:
                  args: Optional[list[int]] = None, value: Optional[int] = None) -> None:
         self.address: int = address  # address should be not None
         self.opcode: Opcode | None = opcode
-        self.args: list[int] = [] if args is None else args
+        self.args: Optional[list[int]] = args
         self.value: Optional[int] = value
 
     def __repr__(self) -> str:
         return self.__dict__.__repr__()
+
+    def __getitem__(self, name: str) -> Any:
+        return self.__dict__[name]
+
+    def items(self) -> Any:
+        return self.__dict__.items()
 
 
 def _dict_to_instruction(dct: dict[str, Any]) -> Instruction:
@@ -222,13 +228,22 @@ def _dict_to_instruction(dct: dict[str, Any]) -> Instruction:
 
 
 # Read and write
-def write_code(fname: str, instructions: list[Instruction], start_pos: int) -> None:
-    code = {
-        "instructions": instructions,
-        "start_pos": start_pos
-    }
+def write_code(fname: str, in_instructions: list[Instruction], start_pos: int) -> None:
     with open(fname, "w", encoding="utf-8") as file:
-        file.write(json.dumps(code, indent=2, sort_keys=True, default=lambda o: o.__dict__))
+        instructions = []
+        # remove None keys to read json easier
+        for in_inst in in_instructions:
+            inst = {}
+            for k, v in in_inst.items():
+                if v is not None:
+                    inst[k] = v
+            instructions.append(inst)
+
+        code = {
+            "instructions": instructions,
+            "start_pos": start_pos
+        }
+        file.write(json.dumps(code, indent=2, sort_keys=True))
 
 
 def read_code(fname: str) -> tuple[list[Instruction], int]:

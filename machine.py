@@ -263,6 +263,8 @@ class ControlUnit:
 
         cmd: Instruction = self.instr_reg
         op = cmd.opcode
+        # we are not iterating over data
+        assert cmd.args is not None
 
         if self.tick_counter.get() == 0:
             self.tc_latch.latch(True, self.tick_counter.get() + 1)
