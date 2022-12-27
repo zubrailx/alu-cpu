@@ -338,6 +338,142 @@ cmd - команда
 
 ## Транслятор
 
+* Интерфейс командной строки: `translator.py <input_file> <target_file>`
+
+* Реализовано в модуле: [translator](./translator.py).
+
+* Этапы трансляции (функция translate):
+    * Токенизирование: преобразование исходного кода в последовательность лексем (`LexerNode`).
+    * Парсинг: на основании токенов строится дерево AST. Парсер умеет бросать ошибки и намекать, в чем проблема, в случае невалидных исходников (`class Parser`).
+    * Проверка дерева парсер на соответствие аргументов инструкций и наличия самих инструкций в словаре `ISACommands`, типа инструкций в соответствующих секциях (так в секции `.data` нельзя определить команду), проверка границ чисел.
+    * Генерация машинного кода на основании дерева AST парсера.
+
+* Парсер и лексер реализуют обработку исходных кодов в соответствие с `ebnf`;
+
+* Один символ языка -- одна инструкция;
+
+* Инструкции и их аргументы прямо отображаются на опкод.
+
+### Генерируемый формат лексера
+
+```
+[
+    {
+        "ltype": "EOL",
+        "off": 18,
+        "raw": "\n"
+    },
+    {
+        "ltype": "Identifier",
+        "off": 19,
+        "raw": "_start"
+    },
+    {
+        "ltype": "Syntax",
+        "off": 25,
+        "raw": ":"
+    },
+    {
+        "ltype": "EOF",
+        "off": 26,
+        "raw": null
+    }
+]
+
+```
+
+### Генерируемый формат парсера
+
+```
+{
+  "type": "Program",
+  "sections": [
+    {
+      "type": "Section",
+      "value": ".text",
+      "instructions": [
+        {
+          "type": "Command",
+          "labels": [
+            "_start"
+          ],
+          "cmd": "ld",
+          "args": [
+            {
+              "type": "DirectArgument",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "Command",
+          "labels": [
+            ".loop"
+          ],
+          "cmd": "in",
+          "args": [
+            {
+              "type": "DirectArgument",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "type": "Command",
+          "labels": [],
+          "cmd": "out",
+          "args": [
+            {
+              "type": "DirectArgument",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "type": "Command",
+          "labels": [],
+          "cmd": "jmp",
+          "args": [
+            {
+              "type": "DirectArgument",
+              "value": ".loop"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+
+### Формат ошибки парсера
+```
+Exception: Parser
+{
+  "type": "Error",
+  "context": "Program",
+  "childs": [
+    {
+      "type": "Error",
+      "context": "Section",
+      "childs": [
+        {
+          "type": "Error",
+          "context": "Keyword",
+          "message": "Got Identifier",
+          "lexem": {
+            "ltype": "Identifier",
+            "off": 19,
+            "raw": "_start"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
 ## Модель процессора
 
 ### DataPath and ControlUnit

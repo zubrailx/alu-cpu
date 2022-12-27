@@ -34,7 +34,7 @@ def get_line_off(source: str, off: int) -> tuple[int, int]:
 class LexerNode:
     """Лексемы, получаемые лексером."""
     def __init__(self, ntype: str, off: int, raw: str | None) -> None:
-        self.type: str = ntype
+        self.ltype: str = ntype
         self.off: int = off
         self.raw: str | None = raw
 
@@ -57,7 +57,7 @@ LexemSpec: dict[str, tuple[Optional[str], str]] = {
 
 
 def lexem_process(src: LexerNode) -> None:
-    if src.type == "CharLiteral":
+    if src.ltype == "CharLiteral":
         assert src.raw is not None
         # replace escaped character with actual
         src.raw = src.raw[0] + literal_eval('"' + src.raw[1: -1] + '"') + src.raw[-1]
@@ -141,7 +141,7 @@ class Parser:
         return self.lexem_list[self.cur]
 
     def skip_eol(self) -> None:
-        while self.lexem_list[self.cur].type == "EOL":
+        while self.lexem_list[self.cur].ltype == "EOL":
             self.cur += 1
 
     def next_skip_eol(self) -> LexerNode:
@@ -381,8 +381,8 @@ class Parser:
 
     def keyword(self, value: str) -> dict[str, Any]:
         kwd = self.get_lex()
-        if kwd.type != "Keyword":
-            return self.err_leaf("Keyword", f"Got {kwd.type}", kwd)
+        if kwd.ltype != "Keyword":
+            return self.err_leaf("Keyword", f"Got {kwd.ltype}", kwd)
         if kwd.raw != value:
             return self.err_leaf("Keyword", f"Not equals '{value}'", kwd)
         return {
@@ -392,8 +392,8 @@ class Parser:
 
     def syntax(self, value: str) -> dict[str, Any]:
         kwd = self.get_lex()
-        if kwd.type != "Syntax":
-            return self.err_leaf("Syntax", f"Got {kwd.type}", kwd)
+        if kwd.ltype != "Syntax":
+            return self.err_leaf("Syntax", f"Got {kwd.ltype}", kwd)
         if kwd.raw != value:
             return self.err_leaf("Syntax", f"Not equals '{value}'", kwd)
         return {
@@ -403,8 +403,8 @@ class Parser:
 
     def identifier(self) -> dict[str, Any]:
         cur = self.get_lex()
-        if cur.type != "Identifier":
-            return self.err_leaf("Identifier", f"Got {cur.type}", cur)
+        if cur.ltype != "Identifier":
+            return self.err_leaf("Identifier", f"Got {cur.ltype}", cur)
         return {
             "type": "Identifier",
             "lexem": cur
@@ -412,8 +412,8 @@ class Parser:
 
     def int_lit(self) -> dict[str, Any]:
         cur = self.get_lex()
-        if cur.type != "NumericLiteral":
-            return self.err_leaf("IntLiteral", f"Got {cur.type}", cur)
+        if cur.ltype != "NumericLiteral":
+            return self.err_leaf("IntLiteral", f"Got {cur.ltype}", cur)
         return {
             "type": "NumericLiteral",
             "lexem": cur
@@ -421,8 +421,8 @@ class Parser:
 
     def char_lit(self) -> dict[str, Any]:
         cur = self.get_lex()
-        if cur.type != "CharLiteral":
-            return self.err_leaf("CharLiteral", f"Got {cur.type}", cur)
+        if cur.ltype != "CharLiteral":
+            return self.err_leaf("CharLiteral", f"Got {cur.ltype}", cur)
         return {
             "type": "CharLiteral",
             "lexem": cur
@@ -430,7 +430,7 @@ class Parser:
 
     def is_eol(self) -> bool:
         cur = self.get_lex()
-        return cur.type == "EOL"
+        return cur.ltype == "EOL"
 
 
 def parse(lexem_list: list[LexerNode]) -> dict[str, Any]:
@@ -438,7 +438,7 @@ def parse(lexem_list: list[LexerNode]) -> dict[str, Any]:
     ast = parser.parse(lexem_list)
 
     if ast["type"] == "Error":
-        raise Exception(f"Parser\n{json.dumps(ast, indent=2)}")
+        raise Exception(f"Parser\n{json.dumps(ast, indent=2, default=lambda o: o.__dict__)}")
     return ast
 
 
@@ -560,6 +560,7 @@ def main(args: list[str]) -> None:
 
     lexem_list = lexer_process(source)
     ast = parse(lexem_list)
+    print(json.dumps(ast, default=lambda o: o.__dict__, indent=2))
     code = generate_code(ast)
     write_code(target, code["instructions"], code["start_pos"])
 
