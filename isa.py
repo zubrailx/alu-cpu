@@ -1,18 +1,29 @@
+# pylint: disable=missing-function-docstring  # чтобы не быть Капитаном Очевидностью
+# pylint: disable=invalid-name                # сохраним традиционные наименования сигналов
+# pylint: disable=consider-using-f-string     # избыточный синтаксис
+# pylint: disable=too-few-public-methods
+
+"""
+Типы данных для представления и сериализации/десериализации машинного кода.
+"""
+
 import json
 from enum import Enum
+from typing import Optional, Any
 
 WORD_WIDTH = 32
 
 
 class ArgumentTypes(str, Enum):
-    Direct = "DirectArgument",
-    Indirect = "IndirectArgument"
+    """Типы аргументов, передаваемые ассемблеру."""
 
-    def __repr__(self) -> str:
-        return super().__repr__()
+    Direct = "DirectArgument"
+    Indirect = "IndirectArgument"
 
 
 class Opcode(str, Enum):
+    """Opcode для ISA."""
+
     INC = "inc"
     DEC = "dec"
     ITOC = "itoc"
@@ -41,137 +52,142 @@ class Opcode(str, Enum):
     HALT = "halt"
 
     def __repr__(self) -> str:
-        return super().__repr__()
+        return str(self.value)
+
+
+OpcodeCommand = tuple[Opcode, tuple[ArgumentTypes, ...]]
 
 
 class Command:
-    def __init__(self, name, in_vars=None):
+    """Команда и ее вариации с аргументами."""
+
+    def __init__(self, name: str, in_vars: Optional[list[OpcodeCommand]] = None) -> None:
         if in_vars is None:
             in_vars = []
 
-        self.vars = in_vars
-        self.name = name
+        self.vars: list[tuple[Opcode, tuple[ArgumentTypes, ...]]] = in_vars
+        self.name: str = name
 
-    def add_variation(self, opcode: Opcode, args: list[ArgumentTypes]):
+    def add_variation(self, opcode: Opcode, args: tuple[ArgumentTypes]) -> None:
         self.vars.append((opcode, args))
 
-    def get_opcode(self, in_args: list[ArgumentTypes]):
+    def get_opcode(self, in_args: tuple[ArgumentTypes, ...]) -> Optional[Opcode]:
         for (opcode, args) in self.vars:
             if args == in_args:
                 return opcode
         return None
 
-    def get_command_vars(self):
+    def get_command_vars(self) -> list[tuple[ArgumentTypes, ...]]:
         return [var[1] for var in self.vars]
 
     def __repr__(self) -> str:
         return str({"name": self.name, "vars": self.vars})
 
 
-# Command dictionary
 class CommandDict:
-    def __init__(self):
+    """Словарь команд ISA, с которыми работает machine.py."""
+
+    def __init__(self) -> None:
         self.dct: dict[str, Command] = {}
 
     def append(self, cmd: Command) -> None:
         name = cmd.name
-        if name in self.dct:
-            raise Exception(f"Already has command '{name}'")
-        else:
+        if name not in self.dct:
             self.dct[name] = cmd
+        else:
+            raise Exception(f"ISA Command dictionary already has command '{name}'")
 
-    def get_command(self, name: str):
+    def get_command(self, name: str) -> Optional[Command]:
         if name in self.dct:
             return self.dct[name]
-        else:
-            return None
+        return None
 
     def __repr__(self) -> str:
         return str(self.dct)
 
 
 # Init with commands
-def init_commands(commands: CommandDict):
+def init_commands(commands: CommandDict) -> None:
     commands.append(Command("inc", [
-        (Opcode.INC, [])
+        (Opcode.INC, tuple([]))
     ]))
     commands.append(Command("dec", [
-        (Opcode.DEC, [])
+        (Opcode.DEC, tuple([]))
     ]))
 
     commands.append(Command("itoc", [
-        (Opcode.ITOC, [])
+        (Opcode.ITOC, tuple([]))
     ]))
 
     commands.append(Command("ctoi", [
-        (Opcode.CTOI, [])
+        (Opcode.CTOI, tuple([]))
     ]))
 
     commands.append(Command("add", [
-        (Opcode.ADD_M, [ArgumentTypes.Indirect]),
-        (Opcode.ADD_IMM, [ArgumentTypes.Direct]),
+        (Opcode.ADD_M, tuple([ArgumentTypes.Indirect])),
+        (Opcode.ADD_IMM, tuple([ArgumentTypes.Direct])),
     ]))
 
     commands.append(Command("sub", [
-        (Opcode.SUB_M, [ArgumentTypes.Indirect]),
-        (Opcode.SUB_IMM, [ArgumentTypes.Direct]),
+        (Opcode.SUB_M, tuple([ArgumentTypes.Indirect])),
+        (Opcode.SUB_IMM, tuple([ArgumentTypes.Direct])),
     ]))
 
     commands.append(Command("div", [
-        (Opcode.DIV_M, [ArgumentTypes.Indirect]),
-        (Opcode.DIV_IMM, [ArgumentTypes.Direct]),
+        (Opcode.DIV_M, tuple([ArgumentTypes.Indirect])),
+        (Opcode.DIV_IMM, tuple([ArgumentTypes.Direct])),
     ]))
 
     commands.append(Command("mod", [
-        (Opcode.MOD_M, [ArgumentTypes.Indirect]),
-        (Opcode.MOD_IMM, [ArgumentTypes.Direct]),
+        (Opcode.MOD_M, tuple([ArgumentTypes.Indirect])),
+        (Opcode.MOD_IMM, tuple([ArgumentTypes.Direct])),
     ]))
 
     commands.append(Command("mul", [
-        (Opcode.MUL_M, [ArgumentTypes.Indirect]),
-        (Opcode.MUL_IMM, [ArgumentTypes.Direct]),
+        (Opcode.MUL_M, tuple([ArgumentTypes.Indirect])),
+        (Opcode.MUL_IMM, tuple([ArgumentTypes.Direct])),
     ]))
 
     commands.append(Command("ld", [
-        (Opcode.LD_M, [ArgumentTypes.Indirect]),
-        (Opcode.LD_IMM, [ArgumentTypes.Direct]),
+        (Opcode.LD_M, tuple([ArgumentTypes.Indirect])),
+        (Opcode.LD_IMM, tuple([ArgumentTypes.Direct])),
     ]))
 
     commands.append(Command("st", [
-        (Opcode.ST_IMM, [ArgumentTypes.Direct]),
+        (Opcode.ST_IMM, tuple([ArgumentTypes.Direct])),
     ]))
 
     commands.append(Command("cmp", [
-        (Opcode.CMP_M, [ArgumentTypes.Indirect]),
-        (Opcode.CMP_IMM, [ArgumentTypes.Direct]),
+        (Opcode.CMP_M, tuple([ArgumentTypes.Indirect])),
+        (Opcode.CMP_IMM, tuple([ArgumentTypes.Direct])),
     ]))
 
     commands.append(Command("je", [
-        (Opcode.JE, [ArgumentTypes.Direct]),
+        (Opcode.JE, tuple([ArgumentTypes.Direct])),
     ]))
 
     commands.append(Command("jne", [
-        (Opcode.JNE, [ArgumentTypes.Direct]),
+        (Opcode.JNE, tuple([ArgumentTypes.Direct])),
     ]))
 
     commands.append(Command("js", [
-        (Opcode.JS, [ArgumentTypes.Direct]),
+        (Opcode.JS, tuple([ArgumentTypes.Direct])),
     ]))
 
     commands.append(Command("jmp", [
-        (Opcode.JMP, [ArgumentTypes.Direct]),
+        (Opcode.JMP, tuple([ArgumentTypes.Direct])),
     ]))
 
     commands.append(Command("in", [
-        (Opcode.IN_IMM, [ArgumentTypes.Direct]),
+        (Opcode.IN_IMM, tuple([ArgumentTypes.Direct])),
     ]))
 
     commands.append(Command("out", [
-        (Opcode.OUT_IMM, [ArgumentTypes.Direct]),
+        (Opcode.OUT_IMM, tuple([ArgumentTypes.Direct])),
     ]))
 
     commands.append(Command("halt", [
-        (Opcode.HALT, []),
+        (Opcode.HALT, tuple()),
     ]))
 
 
@@ -180,31 +196,33 @@ ISACommands = CommandDict()
 init_commands(ISACommands)
 
 
-# CODE
 class Instruction:
-    def __init__(self, address=-1, opcode=None, args=None, value=None) -> None:
+    """Описание выражения из исходного текста программы."""
+
+    def __init__(self, address: int = -1, opcode: Optional[Opcode] = None,
+                 args: Optional[list[int]] = None, value: Optional[int] = None) -> None:
         self.address: int = address  # address should be not None
         self.opcode: Opcode | None = opcode
-        self.args: list = [] if args is None else args
-        self.value: int | None = value
+        self.args: list[int] = [] if args is None else args
+        self.value: Optional[int] = value
 
     def __repr__(self) -> str:
         return self.__dict__.__repr__()
 
 
-def _dict_to_instruction(dct: dict) -> Instruction:
+def _dict_to_instruction(dct: dict[str, Any]) -> Instruction:
     inst: Instruction = Instruction()
     for key, val in dct.items():
         if val is not None:
             if key == "opcode":
-                inst.__setattr__(key, Opcode(val))
+                setattr(inst, key, Opcode(val))
             else:
-                inst.__setattr__(key, val)
+                setattr(inst, key, val)
     return inst
 
 
 # Read and write
-def write_code(fname: str, instructions: list, start_pos: int):
+def write_code(fname: str, instructions: list[Instruction], start_pos: int) -> None:
     code = {
         "instructions": instructions,
         "start_pos": start_pos
@@ -213,7 +231,7 @@ def write_code(fname: str, instructions: list, start_pos: int):
         file.write(json.dumps(code, indent=2, sort_keys=True, default=lambda o: o.__dict__))
 
 
-def read_code(fname: str):
+def read_code(fname: str) -> tuple[list[Instruction], int]:
     with open(fname, encoding="utf-8") as file:
         code = json.loads(file.read())
 
@@ -236,16 +254,16 @@ def _ports_to_str(ports: dict[int, dict[str, list[int]]]) -> dict[str, dict[str,
 
 
 # Convert json port numbers and string list input to str
-def _ports_to_int(ports: dict[int | str, dict[str, list[int | str]]]) -> dict[int, dict[str, list[int]]]:
+def _ports_to_int(ports: dict[int | str, dict[str, list[Any]]]) -> dict[int, dict[str, list[int]]]:
     rport = {}
     for pnum, pentry in ports.items():
         rentry = {}
         for k, vlist in pentry.items():
             rlist = []
             for e in vlist:
-                if type(e) == str:
-                    e = ord(str(e))
-                if type(e) == int:
+                if isinstance(e, str):
+                    e = ord(e)
+                if isinstance(e, int):
                     rlist.append(e)
                 else:
                     raise Exception("Unsupported type '{type(e)}' in input")
@@ -260,6 +278,6 @@ def read_input(fname: str) -> dict[int, dict[str, list[int]]]:
     return _ports_to_int(ports)
 
 
-def write_output(fname: str, ports: dict[int, dict[str, list[int]]]):
+def write_output(fname: str, ports: dict[int, dict[str, list[int]]]) -> None:
     with open(fname, "w", encoding="utf-8") as file:
         file.write(json.dumps(_ports_to_str(ports), indent=2, sort_keys=True))
