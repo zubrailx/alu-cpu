@@ -5,41 +5,6 @@
 
 ## Язык программирования
 
-<!-- EBNF: -->
-<!-- ``` ebnf -->
-<!-- newline = <unicode code point U+000A>; -->
-<!-- ascii_char = <arbitrary ASCII character except newline>; -->
-
-<!-- letter = ascii_char; -->
-<!-- digit = "0" ... "9"; -->
-
-<!-- line_comment = ";", { ascii_char }, newline; -->
-
-<!-- int_lit = [ "+", "-" ], { digit }; -->
-<!-- char_lit = "'", ascii_char, "'"; -->
-
-<!-- program = { { newline }, line, { newline } }; -->
-
-<!-- line = [ label_decl ], [ instruction ], [ line_comment ]; -->
-
-<!-- label_decl = label ":"; -->
-<!-- label = identifier; -->
-
-<!-- identifier = letter, { letter | digit }; -->
-
-<!-- instruction = operator, [ operand ]; -->
-<!-- operator = no_arg_op | one_arg_op; -->
-
-<!-- no_arg_op = "inc" | "dec" | "itoc" | "ctoi";  -->
-<!-- one_arg_op = "add" | "sub" | "div" | "mod" | "mul" | "ld" | "st" | "cmp" | "je" | "jne" | "js" | "jmp" } "in" | "out"; -->
-
-<!-- operand = direct_operand | indirect_operand; -->
-<!-- direct_operand = label | immediate; -->
-<!-- indirent_operand = "[", direct_operand, "]"; -->
-
-<!-- immediate = int_lit | char_lit; -->
-<!-- ``` -->
-
 BNF:
 
 ```ebnf
@@ -291,24 +256,85 @@ cmd - команда
 * Инструкции обрабатываются последовательно друг за другом. У каждой иструкции есть этапы FETCH, DECODE, EXECUTE.
 * Прерываний нет.
 * Машина поддерживает только абсолютную адресацию.
+* Присутствуют флаги Z(zero), N(neg) для команд перехода.
 
 
 ### Набор инструкции
 
-| Syntax | Mnemonic | Кол-во тактов           | Comment |
-|--------|----------|-------------------------|---------|
-|        |          |                         |         |
+* Комментарии по командам выше. Одинаковые команды имеют разный опкод в зависимости от принимаемых аргументов. Аргументы бывают `Indirect`, `Direct`.
+
+* Реализуется в модуле [isa](./isa.py).
+
+|Syntax       |Mnemonic |Кол-во тактов|Comment|
+|-------------|---------|-------------|-------|
+|`inc`        |`inc`    |3            |  -    |
+|`dec`        |`dec`    |3            |  -    |
+|`itoc`       |`itoc`   |3            |  -    |
+|`ctoi`       |`ctoi`   |3            |  -    |
+|`add <m32>`  |`add_m`  |4            |  -    |
+|`add <imm32>`|`add_imm`|3            |  -    |
+|`sub <m32>`  |`sub_m`  |4            |  -    |
+|`sub <imm32>`|`sub_imm`|3            |  -    |
+|`div <m32>`  |`div_m`  |4            |  -    |
+|`div <imm32>`|`div_imm`|3            |  -    |
+|`mod <m32>`  |`mod_m`  |4            |  -    |
+|`mod <imm32>`|`mod_imm`|3            |  -    |
+|`mul <m32>`  |`mul_m`  |4            |  -    |
+|`mul <imm32>`|`mul_imm`|3            |  -    |
+|`ld <m32>`   |`ld_m`   |4            |  -    |
+|`ld <imm32>` |`ld_imm` |3            |  -    |
+|`st <m32>`   |`st_imm` |3            |  -    |
+|`cmp <m32>`  |`cmp_m`  |4            |  -    |
+|`cmp <imm32>`|`cmp_imm`|3            |  -    |
+|`je <imm32>` |`je`     |3            |  -    |
+|`jne <imm32>`|`jne`    |3            |  -    |
+|`js <imm32>` |`js`     |3            |  -    |
+|`jmp <imm32>`|`jmp`    |3            |  -    |
+|`in <imm32>` |`in_imm` |3            |  -    |
+|`out <imm32>`|`out_imm`|3            |  -    |
+|`halt`       |`halt`   |3            |  -    |
+
+* Примечание: лишний такт для некоторых команд, работающих с прямыми адресами, наблюдается из-за декодирования операндов инструкции.
+
+#### Этапы инструкций
+
+* `FETCH` - 1 такт
+* `DECODE` - 1 или более тактов
+* `EXECUTE` - 1 или более тактов (условимся что 1 на все операции, даже `div`, `mul`)
 
 ### Кодирование инструкций
 
 - Машинный код сериализуется в список JSON.
 - Один элемент списка, одна инструкция.
-- Адрес инструкции -- индекс списка + `0x4000`. Используется для команд перехода.
+- Адрес инструкции -- индекс списка + `base_address`. Используется для команд перехода и выбора следующей инструкции.
 
 Пример:
 
+* Variable:
 ```json
+{
+  "address": 0,
+  "value": 2
+}
 ```
+
+* Instruction:
+```json
+{
+  "address": 608,
+  "args": [
+    64
+  ],
+  "opcode": "st_imm"
+}
+```
+где:
+* `address` - адрес, по которому в памяти расположена данная инструкция;
+* `value` - значение переменной;
+* `args` - аргументы команды, соответствующие opcode;
+* `opcode` - код операции;
+
+Все команды десериализуются в `class Instruction`, определенный в модуле [isa](./isa.py).
 
 ## Транслятор
 
