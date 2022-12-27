@@ -14,14 +14,13 @@ import sys
 import logging
 from typing import TypeVar, Generic, Any, Callable, Optional
 
-from isa import Opcode, read_code, Instruction, WORD_WIDTH, read_input, write_output
+from isa import Opcode, read_code, Instruction, WORD_WIDTH, read_input, \
+    write_output, WORD_MAX_VALUE, WORD_MIN_VALUE
 
 T = TypeVar('T')
 Ports = dict[int, dict[str, list[int]]]
 
 
-WORD_MAX_VALUE = 2 ** (WORD_WIDTH - 1) - 1
-WORD_MIN_VALUE = 2 ** (WORD_WIDTH - 1) * (-1)
 TICK_LIMIT = 10000
 ITOC_CONST = ord('0')
 INT_UNDEF = -1
@@ -181,6 +180,7 @@ class DataPath:
         if oe:
             return cell
         assert oe or wr, "Invalid arguments to memory_perform. Should be oe=True or wr=True"
+        return None
 
     def alu_perform(self, op: Alu.Operations, left: int, right: int) -> int:
         return self.alu.perform(op, left, right)
@@ -345,7 +345,8 @@ class ControlUnit:
         # Load value in accumulator from mem
         if op in [Opcode.LD_M, Opcode.LD_IMM]:
             dr_val = self.data_path.dr.get()
-            self.data_path.ac.set(self.data_path.alu_perform(Alu.Operations.RIGHT, 0, dr_val))
+            ac_val = self.data_path.alu_perform(Alu.Operations.RIGHT, 0, dr_val)
+            self.data_path.ac.set(ac_val)
             return True
 
         # Store value from accumulator in mem

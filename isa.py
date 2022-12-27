@@ -12,6 +12,8 @@ from enum import Enum
 from typing import Optional, Any
 
 WORD_WIDTH = 32
+WORD_MAX_VALUE = 2 ** (WORD_WIDTH - 1) - 1
+WORD_MIN_VALUE = 2 ** (WORD_WIDTH - 1) * (-1)
 
 
 class ArgumentTypes(str, Enum):

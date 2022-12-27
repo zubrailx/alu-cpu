@@ -15,7 +15,7 @@ import sys
 from ast import literal_eval
 from typing import Any, Optional
 
-from isa import ArgumentTypes, ISACommands, write_code, Instruction, WORD_WIDTH
+from isa import ArgumentTypes, ISACommands, write_code, Instruction, WORD_WIDTH, WORD_MIN_VALUE, WORD_MAX_VALUE
 
 
 # Line and offset starts with 0
@@ -453,6 +453,23 @@ SectionInstrTypes = {
 
 
 # Check semantics and generate code
+def _int_out_of_bounds(val: int) -> bool:
+    return val > WORD_MAX_VALUE or val < WORD_MIN_VALUE
+
+
+def check_bounds(inst: dict[str, Any]) -> None:
+    if inst["type"] == "Command":
+        args = [arg["value"] for arg in inst["args"]]
+        for arg in args:
+            if isinstance(arg, int):
+                if _int_out_of_bounds(arg):
+                    raise Exception(f"Argument '{arg}' of command '{inst['cmd']}' is out of bounds")
+    elif inst["type"] == "Variable":
+        val = inst["value"]
+        if _int_out_of_bounds(val):
+            raise Exception(f"Argument '{val}' of command '{inst['cmd']}' is out of bounds")
+
+
 def check_section_instructions(ast: dict[str, Any]) -> None:
     for sect in ast["sections"]:
         sect_name = sect["value"]
@@ -462,20 +479,23 @@ def check_section_instructions(ast: dict[str, Any]) -> None:
         for inst in sect["instructions"]:
             if inst["type"] not in SectionInstrTypes[sect_name]:
                 raise Exception(f"Instruction type of {inst} in '{sect_name}' is not permitted")
+            # check variable bounds
+            check_bounds(inst)
 
 
 def inst_to_isa_pre(inst: dict[str, Any]) -> Instruction:
     if inst["type"] == "Command":
         name = inst["cmd"]
         isa_args = [arg["type"] for arg in inst["args"]]
-
+        # command
         cmd = ISACommands.get_command(name)
         if cmd is None:
             raise Exception(f"Command '{name}' is not present in isa")
+        # opcode
         opcode = cmd.get_opcode(tuple(isa_args))
         if opcode is None:
-            raise Exception(f"Command '{name}' doesn't support {isa_args}. Given args: {inst['args']}\n"
-                            f"List of supported: {cmd.get_command_vars()}")
+            raise Exception(f"Command '{name}' doesn't support {isa_args}. Given args:"
+                            "{inst['args']}\n" f"List of supported: {cmd.get_command_vars()}")
         return Instruction(
             address=-1,
             opcode=opcode,
