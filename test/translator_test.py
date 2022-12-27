@@ -4,7 +4,7 @@ import os
 import tempfile
 import unittest
 
-import src.isa
+import isa
 
 class TestTranslator(unittest.TestCase):
     def test_parser(self):

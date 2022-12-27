@@ -120,12 +120,12 @@ class Alu:
 class DataPath:
     # ports - buses connected to ports where on device side:
     #   ports[num][0] - in, ports[num][1] - out
-    def __init__(self, memory: list, ports: dict[str, dict[str, list[int]]]) -> None:
+    def __init__(self, memory: list, ports: dict[int, dict[str, list[int]]]) -> None:
         assert len(memory), "Should be at least one instruction"
         self.memory: list[Instruction] = memory
 
-        self.ports_in: dict[str, list[int]] = {}
-        self.ports_out: dict[str, list[int]] = {}
+        self.ports_in: dict[int, list[int]] = {}
+        self.ports_out: dict[int, list[int]] = {}
         for num, port in ports.items():
             if "in" in port:
                 self.ports_in[num] = port["in"]
@@ -169,9 +169,7 @@ class DataPath:
     def alu_perform(self, op: Alu.Operations, left: int, right: int) -> int:
         return self.alu.perform(op, left, right)
 
-    def port_perform(self, port: int | str, io_wr: bool):
-        # convert port from int to str
-        port = str(port)
+    def port_perform(self, port: int, io_wr: bool):
         if io_wr:
             pout = self.ac.get()
             logging.debug(f"ports[{port}].out << {pout}")
@@ -388,7 +386,7 @@ class ControlUnit:
         )
 
 
-def simulation(memory, start_pos, ports: dict[str, dict[str, list[int]]], tick_limit=TICK_LIMIT, by_tick: bool = True):
+def simulation(memory, start_pos, ports: dict[int, dict[str, list[int]]], tick_limit=TICK_LIMIT, by_tick: bool = True):
     data_path = DataPath(memory, ports)
     control_unit = ControlUnit(data_path, start_pos)
     # initial status
@@ -404,10 +402,8 @@ def simulation(memory, start_pos, ports: dict[str, dict[str, list[int]]], tick_l
 
         status = control_unit.get_status()
         logging.debug('%s', control_unit)
-
     if status == ControlUnit.Status.TERMINATED:
         print("WARNING: machine was terminated.")
-
     return ports
 
 
@@ -417,7 +413,8 @@ def main(args):
     
     memory, start_pos = read_code(code_file)
     ports = read_input(input_fname)
-    write_output(output_fname, simulation(memory, start_pos, ports))
+    ports_out = simulation(memory, start_pos, ports)
+    write_output(output_fname, ports_out)
 
 
 if __name__ == '__main__':

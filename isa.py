@@ -180,6 +180,7 @@ ISACommands = CommandDict()
 init_commands(ISACommands)
 
 
+# CODE
 class Instruction:
     def __init__(self, address=-1, opcode=None, args=None, value=None) -> None:
         self.address: int = address  # address should be not None
@@ -222,12 +223,43 @@ def read_code(fname: str):
     return code["instructions"], code["start_pos"]
 
 
-def read_input(fname: str) -> dict[str, dict[str, list[int]]]:
+# INPUT/OUTPUT
+# Convert json port numbers and string list input to int
+def _ports_to_str(ports: dict[int, dict[str, list[int]]]) -> dict[str, dict[str, list[str]]]:
+    ret = {}
+    for pnum, pentry in ports.items():
+        rentry = {}
+        for k, vlist in pentry.items():
+            rentry[k] = [chr(e) for e in vlist]
+        ret[str(pnum)] = rentry
+    return ret
+
+
+# Convert json port numbers and string list input to str
+def _ports_to_int(ports: dict[int | str, dict[str, list[int | str]]]) -> dict[int, dict[str, list[int]]]:
+    rport = {}
+    for pnum, pentry in ports.items():
+        rentry = {}
+        for k, vlist in pentry.items():
+            rlist = []
+            for e in vlist:
+                if type(e) == str:
+                    e = ord(str(e))
+                if type(e) == int:
+                    rlist.append(e)
+                else:
+                    raise Exception("Unsupported type '{type(e)}' in input")
+            rentry[k] = rlist
+        rport[int(pnum)] = rentry
+    return rport
+
+
+def read_input(fname: str) -> dict[int, dict[str, list[int]]]:
     with open(fname, encoding="utf-8") as file:
         ports = json.loads(file.read())
-    return ports
+    return _ports_to_int(ports)
 
 
-def write_output(fname: str, ports: dict[str, dict[str, list[int]]]):
+def write_output(fname: str, ports: dict[int, dict[str, list[int]]]):
     with open(fname, "w", encoding="utf-8") as file:
-        file.write(json.dumps(ports, indent=2, sort_keys=True))
+        file.write(json.dumps(_ports_to_str(ports), indent=2, sort_keys=True))

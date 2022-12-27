@@ -3,7 +3,7 @@
 import json
 import re
 import sys
-from collections import namedtuple
+from ast import literal_eval
 
 from isa import ArgumentTypes, ISACommands, write_code, Instruction, WORD_WIDTH
 
@@ -21,8 +21,11 @@ def get_line_off(source, off):
 # ----------------------------------------------------------
 # Lexer
 # ----------------------------------------------------------
-class LexerNode(namedtuple('LexerNode', 'type off raw')):
-    pass
+class LexerNode:
+    def __init__(self, ntype: str, off: int, raw: str | None) -> None:
+        self.type: str = ntype
+        self.off: int = off
+        self.raw: str | None = raw
 
 
 # None - don't include identifier
@@ -42,6 +45,14 @@ LexemSpec = {
 }
 
 
+def lexem_process(src: LexerNode) -> None:
+    if src.type == "CharLiteral":
+        assert src.raw is not None
+        # replace escaped character with actual
+        src.raw = src.raw[0] + literal_eval('"' + src.raw[1: -1] + '"') + src.raw[-1]
+        pass
+
+
 def lexer_process(source):
     lexem_list = []
     cur_pos = 0
@@ -52,8 +63,9 @@ def lexer_process(source):
             if res is not None:
                 end_pos = cur_pos + res.end()
                 if lexem_type is not None:
-                    lexem_list.append(LexerNode(lexem_type, cur_pos, source[cur_pos:end_pos]))
-
+                    node = LexerNode(lexem_type, cur_pos, source[cur_pos:end_pos])
+                    lexem_process(node)
+                    lexem_list.append(node)
                 cur_pos = end_pos
                 found = True
                 break
@@ -231,7 +243,7 @@ class Parser:
             arg = self.argument()
             if self.is_err(arg):
                 self.cur = start
-                return self.err_leaf("Command", "Expected argument", arg["lexem"])
+                return self.err_path("Command", [arg])
             else:
                 root["args"].append(arg)
         # if 1 or more
@@ -243,10 +255,10 @@ class Parser:
 
             if self.is_err(com):
                 self.cur = start
-                return self.err_leaf("Command", "Expected ','", com["lexem"])
+                return self.err_path("Command", [com])
             elif self.is_err(arg):
                 self.cur = start
-                return self.err_leaf("Command", "Expected argument", arg["lexem"])
+                return self.err_path("Command", [arg])
 
             root["args"].append(arg)
             self.next_lex()

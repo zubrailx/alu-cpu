@@ -4,7 +4,7 @@ import os
 import tempfile
 import unittest
 
-import src.machine
+import machine
 
 class TestIntegrational(unittest.TestCase):
     def test_integr(self):

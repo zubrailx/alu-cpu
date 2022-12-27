@@ -195,7 +195,7 @@
     {
       "address": 768,
       "args": [
-        92
+        10
       ],
       "opcode": "ld_imm",
       "value": null
