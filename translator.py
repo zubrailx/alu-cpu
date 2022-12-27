@@ -42,12 +42,12 @@ class LexerNode:
 # None - don't include identifier
 LexemSpec: dict[str, tuple[Optional[str], str]] = {
     "Keyword": ("Keyword", r'section'),
-    "Identifier": ("Identifier", r'(a-zA-Z_\.)(\w)*'),
-    "Syntax": ("Syntax", r'\(|\)|:|,'),
+    "Identifier": ("Identifier", r'[a-zA-Z_\.]\w*'),
+    "Syntax": ("Syntax", r'\[|\]|:|,'),
 
-    "NumericLiteral": ("NumericLiteral", r'(-+)?\d+'),
+    "NumericLiteral": ("NumericLiteral", r'[-+]?\d+'),
     "StringLiteral": ("StringLiteral", r'".*"'),
-    "CharLiteral": ("CharLiteral", r"'(.|\\n|\\t)'"),
+    "CharLiteral": ("CharLiteral", r"'(.|\\n|\\t|\\r|\\q)'"),
 
     "EOL": ("EOL", r'\n'),
 

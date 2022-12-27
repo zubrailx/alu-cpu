@@ -22,7 +22,7 @@ Ports = dict[int, dict[str, list[int]]]
 
 WORD_MAX_VALUE = 2 ** (WORD_WIDTH - 1) - 1
 WORD_MIN_VALUE = 2 ** (WORD_WIDTH - 1) * (-1)
-TICK_LIMIT = 5000
+TICK_LIMIT = 10000
 ITOC_CONST = ord('0')
 INT_UNDEF = -1
 
