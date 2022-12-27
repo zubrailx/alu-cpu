@@ -93,7 +93,7 @@ class Alu:
         NEG = 1
 
     def __init__(self) -> None:
-        self.flags = 0b0
+        self.flags: int = 0b0
         self.operations: dict[Alu.Operations, Callable[[int, int], int]] = {
             self.Operations.ADD: lambda lsv, rsv: lsv + rsv,
             self.Operations.SUB: lambda lsv, rsv: lsv - rsv,
@@ -105,7 +105,7 @@ class Alu:
         }
 
     def get_bit(self, flag: Flags) -> int:
-        return int(self.flags >> flag.value)
+        return int(self.flags >> flag.value) & 0x1
 
     def _set_bit(self, x: int, flag: Flags) -> None:
         n: int = flag.value
@@ -175,14 +175,12 @@ class DataPath:
         if wr:
             if cell.value is not None:
                 cell.value = data_in
+                logging.debug("mem[%d] = %d", addr, data_in)
             else:
                 raise Exception(f"DataPath: Trying to overwrite code on address '{addr}")
         if oe:
             return cell
-
         assert oe or wr, "Invalid arguments to memory_perform. Should be oe=True or wr=True"
-        # never will get here if everything is ok
-        return Instruction()
 
     def alu_perform(self, op: Alu.Operations, left: int, right: int) -> int:
         return self.alu.perform(op, left, right)
@@ -200,9 +198,11 @@ class DataPath:
             self.ac.set(pin)
 
     def __repr__(self) -> str:
-        return "AC: {}, DR: {}".format(
+        return "AC: {}, DR: {}, FLG: {{ Z: {}, N: {} }}".format(
             self.ac,
-            self.dr
+            self.dr,
+            self.alu.get_bit(Alu.Flags.ZERO),
+            self.alu.get_bit(Alu.Flags.NEG)
         )
 
 
@@ -248,6 +248,8 @@ class ControlUnit:
 
     # Instruction Cycle
     def fetch(self) -> bool:
+        # unlatch accumulator, after previous tick value should be stored in ac
+        self.ac_latch.latch(False)
         cmd = self.data_path.memory_perform(self.program_counter.get(), oe=True)
         assert isinstance(cmd, Instruction)
 
@@ -443,7 +445,7 @@ def main(args: list[str]) -> None:
 
     memory, start_pos = read_code(code_file)
     ports = read_input(input_fname)
-    ports_out = simulation(memory, start_pos, ports)
+    ports_out = simulation(memory, start_pos, ports, by_tick=False)
     write_output(output_fname, ports_out)
 
 

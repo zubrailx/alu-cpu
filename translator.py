@@ -474,7 +474,7 @@ def inst_to_isa_pre(inst: dict[str, Any]) -> Instruction:
             raise Exception(f"Command '{name}' is not present in isa")
         opcode = cmd.get_opcode(tuple(isa_args))
         if opcode is None:
-            raise Exception(f"Command '{name}' doesn't support {isa_args}.\n"
+            raise Exception(f"Command '{name}' doesn't support {isa_args}. Given args: {inst['args']}\n"
                             f"List of supported: {cmd.get_command_vars()}")
         return Instruction(
             address=-1,
@@ -518,6 +518,8 @@ def generate_code(ast: dict[str, Any], start_pos: int = 0) -> dict[str, Any]:
             for idx, arg in enumerate(inst.args):
                 if arg in labels:
                     inst.args[idx] = labels[arg]
+                elif not isinstance(arg, int):
+                    raise Exception(f"Label '{arg}' not found")
 
     return {
         "instructions": inst_list,

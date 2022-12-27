@@ -154,7 +154,7 @@ def init_commands(commands: CommandDict) -> None:
     ]))
 
     commands.append(Command("st", [
-        (Opcode.ST_IMM, tuple([ArgumentTypes.Direct])),
+        (Opcode.ST_IMM, tuple([ArgumentTypes.Indirect])),
     ]))
 
     commands.append(Command("cmp", [
