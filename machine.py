@@ -166,7 +166,6 @@ class DataPath:
                 rb = m - 1
             else:
                 return cell
-
         raise Exception(f"DataPath: No instructions found with address '{addr}'")
 
     def memory_perform(self, addr: int, data_in: int = 0, oe: bool = False,
@@ -219,7 +218,6 @@ class ControlUnit:
         """Статус машины."""
         RUNNABLE = 0
         HALTED = 1
-        TERMINATED = 2
 
     class Stage(Enum):
         """Этап выполнения команды."""
@@ -255,6 +253,10 @@ class ControlUnit:
         # unlatch accumulator,and program_counter
         self.ac_latch.latch(False)
         self.pc_latch.latch(False)
+
+        # check status of model
+        if self._status != self.Status.RUNNABLE:
+            return False
 
         cmd = self.data_path.memory_perform(self.program_counter.get(), oe=True)
         assert isinstance(cmd, Instruction)
@@ -394,8 +396,9 @@ class ControlUnit:
     def next_tick(self) -> None:
         # fetch
         if self.stage == ControlUnit.Stage.FETCH:
-            self.fetch()
-            self.stage = ControlUnit.Stage.DECODE
+            ended = self.fetch()
+            if ended:
+                self.stage = ControlUnit.Stage.DECODE
         # decode
         elif self.stage == ControlUnit.Stage.DECODE:
             ended = self.decode()
@@ -448,8 +451,6 @@ def simulation(memory: list[Instruction], start_pos: int, ports: Ports,
 
         status = control_unit.get_status()
         logging.debug('%s', control_unit)
-    if status == ControlUnit.Status.TERMINATED:
-        print("WARNING: machine was terminated.")
     return ports
 
 
