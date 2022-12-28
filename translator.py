@@ -16,7 +16,7 @@ from ast import literal_eval
 from typing import Any, Optional
 
 from isa import ArgumentTypes, ISACommands, write_code, Instruction, \
-                WORD_WIDTH, WORD_MIN_VALUE, WORD_MAX_VALUE
+    WORD_WIDTH, WORD_MIN_VALUE, WORD_MAX_VALUE
 
 
 # Line and offset starts with 0

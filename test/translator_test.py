@@ -13,6 +13,7 @@ import unittest
 
 # import isa
 
+
 class TestTranslator(unittest.TestCase):
     def test_parser(self) -> None:
         pass

@@ -12,6 +12,7 @@ import unittest
 
 # import machine
 
+
 class TestMachine(unittest.TestCase):
     def test_machine(self) -> None:
         pass
