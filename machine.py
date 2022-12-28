@@ -5,6 +5,7 @@
 # pylint: disable=too-few-public-methods
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-return-statements
+# pylint: disable=too-many-statements
 
 """Модель процессора, позволяющая выполнить странслированные программы на языке Assembly.
 """
@@ -185,17 +186,20 @@ class DataPath:
     def alu_perform(self, op: Alu.Operations, left: int, right: int) -> int:
         return self.alu.perform(op, left, right)
 
-    def port_perform(self, port: int, io_wr: bool) -> None:
-        if io_wr:
+    # io_sel - number of port
+    def io_perform(self, io_sel: int, is_in: bool=False, is_out: bool=False) -> int:
+        assert not is_in or not is_out, "In and Out are set to True, undefined behaviour"
+        if is_in:
+            if len(self.ports_in[io_sel]) == 0:
+                raise Exception(f"DataPath: ports[{io_sel}].in queue is empty")
+            pin = self.ports_in[io_sel].pop(0)
+            logging.debug("ports[%d].in >> %d ('%s')", io_sel, pin, chr(pin))
+            return pin
+        if is_out:
             pout = self.ac.get()
-            logging.debug("ports[%d].out << %d ('%s')", port, pout, chr(pout))
-            self.ports_out[port].append(pout)
-        else:
-            if len(self.ports_in[port]) == 0:
-                raise Exception(f"DataPath: ports[{port}].in queue is empty")
-            pin = self.ports_in[port].pop(0)
-            logging.debug("ports[%d].in >> %d ('%s')", port, pin, chr(pin))
-            self.ac.set(pin)
+            logging.debug("ports[%d].out << %d ('%s')", io_sel, pout, chr(pout))
+            self.ports_out[io_sel].append(pout)
+        return INT_UNDEF
 
     def __repr__(self) -> str:
         return "AC: {}, DR: {}, FLG: {{ Z: {}, N: {} }}".format(
@@ -248,13 +252,15 @@ class ControlUnit:
 
     # Instruction Cycle
     def fetch(self) -> bool:
-        # unlatch accumulator, after previous tick value should be stored in ac
+        # unlatch accumulator,and program_counter
         self.ac_latch.latch(False)
+        self.pc_latch.latch(False)
+
         cmd = self.data_path.memory_perform(self.program_counter.get(), oe=True)
         assert isinstance(cmd, Instruction)
-
         self.instr_reg = cmd
-        self.tick_counter.set(0)
+
+        self.tc_latch.latch(True, 0)
         self.pc_latch.latch(True, self.program_counter.get() + WORD_WIDTH)
         return True
 
@@ -262,37 +268,41 @@ class ControlUnit:
     def decode(self) -> bool:
         self.pc_latch.latch(False)
         self.tc_latch.latch(False)
+        self.dr_latch.latch(False)
+        self.tc_latch.latch(True, self.tick_counter.get() + 1)
 
         cmd: Instruction = self.instr_reg
         op = cmd.opcode
         # we are not iterating over data
-        assert cmd.args is not None
+        if cmd.args is None:
+            raise Exception(f"Trying to iterate over data '{cmd}'")
 
         if self.tick_counter.get() == 0:
-            self.tc_latch.latch(True, self.tick_counter.get() + 1)
             # commands with at least one argument
             if op not in [Opcode.INC, Opcode.DEC, Opcode.CTOI, Opcode.ITOC, Opcode.HALT]:
-                self.data_path.dr.set(cmd.args[0])
+                self.dr_latch.latch(True, cmd.args[0])
             # indirect commands
             return op not in [Opcode.ADD_M, Opcode.SUB_M, Opcode.MOD_M, Opcode.MUL_M,
                               Opcode.LD_M, Opcode.CMP_M]
 
         if self.tick_counter.get() == 1:
-            self.tc_latch.latch(True, self.tick_counter.get() + 1)
             # load indirect argument
             instr = self.data_path.memory_perform(self.data_path.dr.get(), oe=True)
-            assert isinstance(instr, Instruction) and instr.value is not None
+            assert isinstance(instr, Instruction)
+            if instr.value is None:
+                raise Exception(f"Trying to load instruction '{instr}' instead of variable")
 
             self.dr_latch.latch(True, instr.value)
             return True
 
-        assert 0, "Decoder should last max 2 ticks"
+        assert 0, f"Tick number is invalid: {self.tick_counter.get()}"
         return True
 
     # cycle ended or not
     def execute(self) -> bool:
         self.tc_latch.latch(False)
         self.dr_latch.latch(False)
+        self.tc_latch.latch(True, self.tick_counter.get() + 1)
         cmd: Instruction = self.instr_reg
         op = cmd.opcode
 
@@ -346,7 +356,7 @@ class ControlUnit:
         if op in [Opcode.LD_M, Opcode.LD_IMM]:
             dr_val = self.data_path.dr.get()
             ac_val = self.data_path.alu_perform(Alu.Operations.RIGHT, 0, dr_val)
-            self.data_path.ac.set(ac_val)
+            self.ac_latch.latch(True, ac_val)
             return True
 
         # Store value from accumulator in mem
@@ -367,13 +377,16 @@ class ControlUnit:
                 case Opcode.JS:
                     do_jump = self.data_path.alu.get_bit(Alu.Flags.NEG) == 1
             if do_jump:
-                self.program_counter.set(self.data_path.dr.get())
+                self.pc_latch.latch(True, self.data_path.dr.get())
             return True
 
         # Port mapped IO
         if op in [Opcode.IN_IMM, Opcode.OUT_IMM]:
-            port = self.data_path.dr.get()
-            self.data_path.port_perform(port, op == Opcode.OUT_IMM)
+            io_sel = self.data_path.dr.get()
+            if op == Opcode.IN_IMM:
+                self.ac_latch.latch(True, self.data_path.io_perform(io_sel, is_in=True))
+            else:
+                self.data_path.io_perform(io_sel, is_out=True)
             return True
 
         raise Exception(f"Reached unknown Opcode '{op}' while executing")
