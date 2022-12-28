@@ -560,7 +560,6 @@ def main(args: list[str]) -> None:
 
     lexem_list = lexer_process(source)
     ast = parse(lexem_list)
-    print(json.dumps(ast, default=lambda o: o.__dict__, indent=2))
     code = generate_code(ast)
     write_code(target, code["instructions"], code["start_pos"])
 
