@@ -47,10 +47,10 @@ class Opcode(str, Enum):
     CMP_IMM = "cmp_imm"
     JE = "je"
     JNE = "jne"
-    JB = "jb" # below
-    JG = "jg" # greater
-    JBE = "jbe" # below or equals
-    JGE = "jge" # greater or equals
+    JB = "jb"  # below
+    JG = "jg"  # greater
+    JBE = "jbe"  # below or equals
+    JGE = "jge"  # greater or equals
     JMP = "jmp"
     IN_IMM = "in_imm"
     OUT_IMM = "out_imm"

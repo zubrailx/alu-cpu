@@ -15,7 +15,8 @@ import sys
 from ast import literal_eval
 from typing import Any, Optional
 
-from isa import ArgumentTypes, ISACommands, write_code, Instruction, WORD_WIDTH, WORD_MIN_VALUE, WORD_MAX_VALUE
+from isa import ArgumentTypes, ISACommands, write_code, Instruction, \
+                WORD_WIDTH, WORD_MIN_VALUE, WORD_MAX_VALUE
 
 
 # Line and offset starts with 0
@@ -454,7 +455,7 @@ SectionInstrTypes = {
 
 # Check semantics and generate code
 def _int_out_of_bounds(val: int) -> bool:
-    return val > WORD_MAX_VALUE or val < WORD_MIN_VALUE
+    return bool(val > WORD_MAX_VALUE or val < WORD_MIN_VALUE)
 
 
 def check_bounds(inst: dict[str, Any]) -> None:

@@ -186,7 +186,7 @@ class DataPath:
         return self.alu.perform(op, left, right)
 
     # io_sel - number of port
-    def io_perform(self, io_sel: int, is_in: bool=False, is_out: bool=False) -> int:
+    def io_perform(self, io_sel: int, is_in: bool = False, is_out: bool = False) -> int:
         assert not is_in or not is_out, "In and Out are set to True, undefined behaviour"
         if is_in:
             if len(self.ports_in[io_sel]) == 0:
@@ -442,6 +442,7 @@ class ControlUnit:
             self._status,
         )
 
+
 # возвращает вывод на портах и количество исполненных инструкций
 def simulation(memory: list[Instruction], start_pos: int, ports: Ports,
                tick_limit: int, by_tick: bool) -> tuple[Ports, int]:
@@ -483,11 +484,10 @@ def main(args: list[str]) -> None:
         idx = options.index("-t")
         params["tick_limit"] = int(options[idx + 1])
 
-
     memory, start_pos = read_code(code_file)
     ports = read_input(input_fname)
     ports_out, op_cnt = simulation(memory, start_pos, ports,
-                           tick_limit=params["tick_limit"], by_tick=bool(params["by_tick"]))
+                                   tick_limit=params["tick_limit"], by_tick=bool(params["by_tick"]))
     logging.debug("Operations count: %d", op_cnt)
     write_output(output_fname, ports_out)
 
