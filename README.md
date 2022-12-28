@@ -601,6 +601,111 @@ PC (program_counter) - счетчик инструкций.
 1. cat
 2. hello
 
+#### Пример использования и журнал работы процессора на примере `cat`:
+
+``` console
+$ cat cat.asm
+section .text
+
+_start:
+  ld 0
+
+.loop:
+  in 0 ; read from port 0
+  cmp 0
+  je end
+  out 1
+  jmp .loop
+
+end:
+  halt
+
+$ cat cat_in-foo
+{
+  "0": {
+    "in": [
+      "foo",
+      0
+    ]
+  },
+  "1": {
+    "out": []
+  }
+}
+
+
+$ ./machine.py cases/cat cases/cat_in-foo cases/cat_out
+DEBUG:root:TICK: 0, PC: 0, TC: -1, DP: { AC: -1, DR: -1, FLG: { Z: 0, N: 0 } }, IR: {'address': -1, 'opcode': None, 'args': None, 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 1, PC: 0, TC: -1, DP: { AC: -1, DR: -1, FLG: { Z: 0, N: 0 } }, IR: {'address': 0, 'opcode': ld_imm, 'args': [0], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 2, PC: 32, TC: 0, DP: { AC: -1, DR: -1, FLG: { Z: 0, N: 0 } }, IR: {'address': 0, 'opcode': ld_imm, 'args': [0], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 3, PC: 32, TC: 1, DP: { AC: -1, DR: 0, FLG: { Z: 1, N: 0 } }, IR: {'address': 0, 'opcode': ld_imm, 'args': [0], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 4, PC: 32, TC: 1, DP: { AC: 0, DR: 0, FLG: { Z: 1, N: 0 } }, IR: {'address': 32, 'opcode': in_imm, 'args': [0], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 5, PC: 64, TC: 0, DP: { AC: 0, DR: 0, FLG: { Z: 1, N: 0 } }, IR: {'address': 32, 'opcode': in_imm, 'args': [0], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:ports[0].in >> 102 ('f')
+DEBUG:root:TICK: 6, PC: 64, TC: 1, DP: { AC: 0, DR: 0, FLG: { Z: 1, N: 0 } }, IR: {'address': 32, 'opcode': in_imm, 'args': [0], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 7, PC: 64, TC: 1, DP: { AC: 102, DR: 0, FLG: { Z: 1, N: 0 } }, IR: {'address': 64, 'opcode': cmp_imm, 'args': [0], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 8, PC: 96, TC: 0, DP: { AC: 102, DR: 0, FLG: { Z: 1, N: 0 } }, IR: {'address': 64, 'opcode': cmp_imm, 'args': [0], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 9, PC: 96, TC: 1, DP: { AC: 102, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 64, 'opcode': cmp_imm, 'args': [0], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 10, PC: 96, TC: 1, DP: { AC: 102, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 96, 'opcode': je, 'args': [192], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 11, PC: 128, TC: 0, DP: { AC: 102, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 96, 'opcode': je, 'args': [192], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 12, PC: 128, TC: 1, DP: { AC: 102, DR: 192, FLG: { Z: 0, N: 0 } }, IR: {'address': 96, 'opcode': je, 'args': [192], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 13, PC: 128, TC: 1, DP: { AC: 102, DR: 192, FLG: { Z: 0, N: 0 } }, IR: {'address': 128, 'opcode': out_imm, 'args': [1], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 14, PC: 160, TC: 0, DP: { AC: 102, DR: 192, FLG: { Z: 0, N: 0 } }, IR: {'address': 128, 'opcode': out_imm, 'args': [1], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:ports[1].out << 102 ('f')
+DEBUG:root:TICK: 15, PC: 160, TC: 1, DP: { AC: 102, DR: 1, FLG: { Z: 0, N: 0 } }, IR: {'address': 128, 'opcode': out_imm, 'args': [1], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 16, PC: 160, TC: 1, DP: { AC: 102, DR: 1, FLG: { Z: 0, N: 0 } }, IR: {'address': 160, 'opcode': jmp, 'args': [32], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 17, PC: 192, TC: 0, DP: { AC: 102, DR: 1, FLG: { Z: 0, N: 0 } }, IR: {'address': 160, 'opcode': jmp, 'args': [32], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 18, PC: 192, TC: 1, DP: { AC: 102, DR: 32, FLG: { Z: 0, N: 0 } }, IR: {'address': 160, 'opcode': jmp, 'args': [32], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 19, PC: 32, TC: 1, DP: { AC: 102, DR: 32, FLG: { Z: 0, N: 0 } }, IR: {'address': 32, 'opcode': in_imm, 'args': [0], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 20, PC: 64, TC: 0, DP: { AC: 102, DR: 32, FLG: { Z: 0, N: 0 } }, IR: {'address': 32, 'opcode': in_imm, 'args': [0], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:ports[0].in >> 111 ('o')
+DEBUG:root:TICK: 21, PC: 64, TC: 1, DP: { AC: 102, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 32, 'opcode': in_imm, 'args': [0], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 22, PC: 64, TC: 1, DP: { AC: 111, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 64, 'opcode': cmp_imm, 'args': [0], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 23, PC: 96, TC: 0, DP: { AC: 111, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 64, 'opcode': cmp_imm, 'args': [0], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 24, PC: 96, TC: 1, DP: { AC: 111, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 64, 'opcode': cmp_imm, 'args': [0], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 25, PC: 96, TC: 1, DP: { AC: 111, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 96, 'opcode': je, 'args': [192], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 26, PC: 128, TC: 0, DP: { AC: 111, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 96, 'opcode': je, 'args': [192], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 27, PC: 128, TC: 1, DP: { AC: 111, DR: 192, FLG: { Z: 0, N: 0 } }, IR: {'address': 96, 'opcode': je, 'args': [192], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 28, PC: 128, TC: 1, DP: { AC: 111, DR: 192, FLG: { Z: 0, N: 0 } }, IR: {'address': 128, 'opcode': out_imm, 'args': [1], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 29, PC: 160, TC: 0, DP: { AC: 111, DR: 192, FLG: { Z: 0, N: 0 } }, IR: {'address': 128, 'opcode': out_imm, 'args': [1], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:ports[1].out << 111 ('o')
+DEBUG:root:TICK: 30, PC: 160, TC: 1, DP: { AC: 111, DR: 1, FLG: { Z: 0, N: 0 } }, IR: {'address': 128, 'opcode': out_imm, 'args': [1], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 31, PC: 160, TC: 1, DP: { AC: 111, DR: 1, FLG: { Z: 0, N: 0 } }, IR: {'address': 160, 'opcode': jmp, 'args': [32], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 32, PC: 192, TC: 0, DP: { AC: 111, DR: 1, FLG: { Z: 0, N: 0 } }, IR: {'address': 160, 'opcode': jmp, 'args': [32], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 33, PC: 192, TC: 1, DP: { AC: 111, DR: 32, FLG: { Z: 0, N: 0 } }, IR: {'address': 160, 'opcode': jmp, 'args': [32], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 34, PC: 32, TC: 1, DP: { AC: 111, DR: 32, FLG: { Z: 0, N: 0 } }, IR: {'address': 32, 'opcode': in_imm, 'args': [0], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 35, PC: 64, TC: 0, DP: { AC: 111, DR: 32, FLG: { Z: 0, N: 0 } }, IR: {'address': 32, 'opcode': in_imm, 'args': [0], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:ports[0].in >> 111 ('o')
+DEBUG:root:TICK: 36, PC: 64, TC: 1, DP: { AC: 111, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 32, 'opcode': in_imm, 'args': [0], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 37, PC: 64, TC: 1, DP: { AC: 111, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 64, 'opcode': cmp_imm, 'args': [0], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 38, PC: 96, TC: 0, DP: { AC: 111, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 64, 'opcode': cmp_imm, 'args': [0], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 39, PC: 96, TC: 1, DP: { AC: 111, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 64, 'opcode': cmp_imm, 'args': [0], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 40, PC: 96, TC: 1, DP: { AC: 111, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 96, 'opcode': je, 'args': [192], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 41, PC: 128, TC: 0, DP: { AC: 111, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 96, 'opcode': je, 'args': [192], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 42, PC: 128, TC: 1, DP: { AC: 111, DR: 192, FLG: { Z: 0, N: 0 } }, IR: {'address': 96, 'opcode': je, 'args': [192], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 43, PC: 128, TC: 1, DP: { AC: 111, DR: 192, FLG: { Z: 0, N: 0 } }, IR: {'address': 128, 'opcode': out_imm, 'args': [1], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 44, PC: 160, TC: 0, DP: { AC: 111, DR: 192, FLG: { Z: 0, N: 0 } }, IR: {'address': 128, 'opcode': out_imm, 'args': [1], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:ports[1].out << 111 ('o')
+DEBUG:root:TICK: 45, PC: 160, TC: 1, DP: { AC: 111, DR: 1, FLG: { Z: 0, N: 0 } }, IR: {'address': 128, 'opcode': out_imm, 'args': [1], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 46, PC: 160, TC: 1, DP: { AC: 111, DR: 1, FLG: { Z: 0, N: 0 } }, IR: {'address': 160, 'opcode': jmp, 'args': [32], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 47, PC: 192, TC: 0, DP: { AC: 111, DR: 1, FLG: { Z: 0, N: 0 } }, IR: {'address': 160, 'opcode': jmp, 'args': [32], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 48, PC: 192, TC: 1, DP: { AC: 111, DR: 32, FLG: { Z: 0, N: 0 } }, IR: {'address': 160, 'opcode': jmp, 'args': [32], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 49, PC: 32, TC: 1, DP: { AC: 111, DR: 32, FLG: { Z: 0, N: 0 } }, IR: {'address': 32, 'opcode': in_imm, 'args': [0], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 50, PC: 64, TC: 0, DP: { AC: 111, DR: 32, FLG: { Z: 0, N: 0 } }, IR: {'address': 32, 'opcode': in_imm, 'args': [0], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:ports[0].in >> 0 ('')
+DEBUG:root:TICK: 51, PC: 64, TC: 1, DP: { AC: 111, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 32, 'opcode': in_imm, 'args': [0], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 52, PC: 64, TC: 1, DP: { AC: 0, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 64, 'opcode': cmp_imm, 'args': [0], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 53, PC: 96, TC: 0, DP: { AC: 0, DR: 0, FLG: { Z: 0, N: 0 } }, IR: {'address': 64, 'opcode': cmp_imm, 'args': [0], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 54, PC: 96, TC: 1, DP: { AC: 0, DR: 0, FLG: { Z: 1, N: 0 } }, IR: {'address': 64, 'opcode': cmp_imm, 'args': [0], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 55, PC: 96, TC: 1, DP: { AC: 0, DR: 0, FLG: { Z: 1, N: 0 } }, IR: {'address': 96, 'opcode': je, 'args': [192], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 56, PC: 128, TC: 0, DP: { AC: 0, DR: 0, FLG: { Z: 1, N: 0 } }, IR: {'address': 96, 'opcode': je, 'args': [192], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 57, PC: 128, TC: 1, DP: { AC: 0, DR: 192, FLG: { Z: 1, N: 0 } }, IR: {'address': 96, 'opcode': je, 'args': [192], 'value': None}, STAGE: Stage.FETCH, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 58, PC: 192, TC: 1, DP: { AC: 0, DR: 192, FLG: { Z: 1, N: 0 } }, IR: {'address': 192, 'opcode': halt, 'args': [], 'value': None}, STAGE: Stage.DECODE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 59, PC: 224, TC: 0, DP: { AC: 0, DR: 192, FLG: { Z: 1, N: 0 } }, IR: {'address': 192, 'opcode': halt, 'args': [], 'value': None}, STAGE: Stage.EXECUTE, STAT: Status.RUNNABLE
+DEBUG:root:TICK: 60, PC: 224, TC: 1, DP: { AC: 0, DR: 192, FLG: { Z: 1, N: 0 } }, IR: {'address': 192, 'opcode': halt, 'args': [], 'value': None}, STAGE: Stage.FETCH, STAT: Status.HALTED
+DEBUG:root:Operations count: 60
+```
+
 ### Модульное тестирование
 
 Для каждого модуля по файлу с модульными тестами.
@@ -629,10 +734,7 @@ Docker:
 - Gitlab `python-tools` - выделенный image. Включает в себя все перечисленные утилиты.
 - Github `ca-lab3:rlatest`. Конфигурация: [Dockerfile](./Dockerfile) 
 
-Пример использования и журнал работы процессора на примере `cat`:
-
-``` console
-```
+## Табличка
 
 | ФИО                     | алг.   | LoC       | code байт | code инстр. | инстр. | такт. | вариант |
 |--------------------------|-------|-----------|-----------|-------------|--------|-------|---------|
